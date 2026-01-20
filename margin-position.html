@@ -83,19 +83,19 @@
     <p>True margin after time and floorplan.</p>
 
     <label>Vehicle Cost ($)</label>
-    <input id="cost" type="number" placeholder="45000">
+    <input id="cost" type="number" value="45000">
 
     <label>All-in Floorplan Rate (%)</label>
-    <input id="rate" type="number" placeholder="9">
+    <input id="rate" type="number" value="9">
 
     <label>Days in Stock</label>
-    <input id="days" type="number" placeholder="45">
+    <input id="days" type="number" value="45">
 
     <label>Current Offer Gross ($)</label>
-    <input id="currentGross" type="number" placeholder="2000">
+    <input id="currentGross" type="number" value="2000">
 
     <label>Desired Gross ($)</label>
-    <input id="desiredGross" type="number" placeholder="3500">
+    <input id="desiredGross" type="number" value="3500">
 
     <div class="result">
       <div>Floorplan Cost to Date</div>
@@ -120,80 +120,68 @@
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    const costEl = document.getElementById("cost");
+    const rateEl = document.getElementById("rate");
+    const daysEl = document.getElementById("days");
+    const currentGrossEl = document.getElementById("currentGross");
+    const desiredGrossEl = document.getElementById("desiredGross");
 
-      const costEl = document.getElementById("cost");
-      const rateEl = document.getElementById("rate");
-      const daysEl = document.getElementById("days");
-      const currentGrossEl = document.getElementById("currentGross");
-      const desiredGrossEl = document.getElementById("desiredGross");
+    function calculate() {
+      const cost = Number(costEl.value) || 0;
+      const rate = Number(rateEl.value) || 0;
+      const days = Number(daysEl.value) || 0;
+      const currentGross = Number(currentGrossEl.value) || 0;
+      const desiredGross = Number(desiredGrossEl.value) || 0;
 
-      function calculate() {
-        const cost = Number(costEl.value);
-        const rate = Number(rateEl.value);
-        const days = Number(daysEl.value);
-        const currentGross = Number(currentGrossEl.value);
-        const desiredGross = Number(desiredGrossEl.value);
+      const dailyCost = (cost * (rate / 100)) / 365;
+      const floorplanToDate = dailyCost * days;
+      const trueGross = currentGross - floorplanToDate;
 
-        if (!cost || !rate || !days) return;
+      document.getElementById("costToDate").innerText =
+        "$" + floorplanToDate.toFixed(0);
 
-        // Daily floorplan cost
-        const dailyCost = (cost * (rate / 100)) / 365;
+      document.getElementById("trueGross").innerText =
+        "$" + trueGross.toFixed(0);
 
-        // Total floorplan to date
-        const floorplanToDate = dailyCost * days;
+      const decisionIcon = document.getElementById("decisionIcon");
+      const decisionText = document.getElementById("decisionText");
+      const daysUntilBehindEl = document.getElementById("daysUntilBehind");
 
-        // True gross today
-        const trueGross = currentGross - floorplanToDate;
-
-        // Update UI
-        document.getElementById("costToDate").innerText =
-          "$" + floorplanToDate.toFixed(0);
-
-        document.getElementById("trueGross").innerText =
-          "$" + trueGross.toFixed(0);
-
-        const decisionIcon = document.getElementById("decisionIcon");
-        const decisionText = document.getElementById("decisionText");
-        const daysUntilBehindEl = document.getElementById("daysUntilBehind");
-
-        if (desiredGross > 0 && dailyCost > 0) {
-          const gapToTarget = desiredGross - trueGross;
-          const daysUntilBehind = gapToTarget / dailyCost;
-
-          if (trueGross >= desiredGross) {
-            decisionIcon.innerText = "👍";
-            decisionText.innerText = "Ahead – selling now meets target margin";
-            daysUntilBehindEl.innerText = "On target today";
-          }
-          else if (trueGross > 0) {
-            decisionIcon.innerText = "👎";
-            decisionText.innerText = "Behind target – margin eroding daily";
-            daysUntilBehindEl.innerText =
-              Math.floor(Math.abs(daysUntilBehind)) + " days";
-          }
-          else {
-            decisionIcon.innerText = "👎";
-            decisionText.innerText = "Gross gone – holding destroys value";
-            daysUntilBehindEl.innerText = "Already behind";
-          }
-        } else {
-          decisionIcon.innerText = "–";
-          decisionText.innerText = "";
-          daysUntilBehindEl.innerText = "–";
-        }
+      if (dailyCost <= 0 || desiredGross <= 0) {
+        decisionIcon.innerText = "–";
+        decisionText.innerText = "";
+        daysUntilBehindEl.innerText = "–";
+        return;
       }
 
-      [
-        costEl,
-        rateEl,
-        daysEl,
-        currentGrossEl,
-        desiredGrossEl
-      ].forEach(el => el.addEventListener("input", calculate));
-      
-      calculate();
-    });
+      const gapToTarget = desiredGross - trueGross;
+      const daysUntilBehind = gapToTarget / dailyCost;
+
+      if (trueGross >= desiredGross) {
+        decisionIcon.innerText = "👍";
+        decisionText.innerText = "Ahead – selling now meets target margin";
+        daysUntilBehindEl.innerText = "On target today";
+      } else if (trueGross > 0) {
+        decisionIcon.innerText = "👎";
+        decisionText.innerText = "Behind target – margin eroding daily";
+        daysUntilBehindEl.innerText =
+          Math.floor(daysUntilBehind) + " days";
+      } else {
+        decisionIcon.innerText = "👎";
+        decisionText.innerText = "Gross gone – holding destroys value";
+        daysUntilBehindEl.innerText = "Already behind";
+      }
+    }
+
+    [
+      costEl,
+      rateEl,
+      daysEl,
+      currentGrossEl,
+      desiredGrossEl
+    ].forEach(el => el.addEventListener("input", calculate));
+
+    calculate();
   </script>
 </body>
 </html>
