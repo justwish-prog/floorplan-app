@@ -1,113 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Let’s Consult – Daily Floorplan Cost</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
-      background: #0f172a;
-      color: #e5e7eb;
-      margin: 0;
-      padding: 20px;
-    }
-    .card {
-      max-width: 420px;
-      margin: 0 auto;
-      background: #020617;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.4);
-    }
-    h1 {
-      font-size: 20px;
-      margin-bottom: 10px;
-    }
-    p {
-      font-size: 14px;
-      color: #94a3b8;
-      margin-bottom: 20px;
-    }
-    label {
-      font-size: 13px;
-      margin-top: 12px;
-      display: block;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 4px;
-      border-radius: 8px;
-      border: none;
-      background: #020617;
-      color: #e5e7eb;
-      border: 1px solid #1e293b;
-    }
-    .result {
-      margin-top: 16px;
-      padding: 12px;
-      background: #020617;
-      border-radius: 8px;
-      border: 1px solid #1e293b;
-      font-size: 14px;
-    }
-    .highlight {
-      font-size: 22px;
-      font-weight: bold;
-      margin-top: 6px;
-    }
-  </style>
-</head>
+<script>
+  const costInput = document.getElementById("cost");
+  const rateInput = document.getElementById("rate");
+  const daysInput = document.getElementById("days");
+  const grossInput = document.getElementById("gross");
+  const improvementInput = document.getElementById("improvement");
 
-<body>
-  <div class="card">
-    <h1>Daily Floorplan Cost</h1>
-    <p>Make holding cost visible. Every day matters.</p>
+  function calculate() {
+    const cost = parseFloat(costInput.value) || 0;
+    const rate = parseFloat(rateInput.value) || 0;
+    const days = parseFloat(daysInput.value) || 0;
+    const gross = parseFloat(grossInput.value) || 0;
+    const improvement = parseFloat(improvementInput.value) || 0;
 
-    <label>Vehicle Cost ($)</label>
-    <input type="number" id="cost" placeholder="e.g. 45000" />
+    const daily = (cost * (rate / 100)) / 365;
+    const total = daily * days;
+    const weeklyCost = daily * 7;
 
-    <label>All-in Floorplan Rate (%)</label>
-    <input type="number" id="rate" placeholder="e.g. 8.5" />
+    document.getElementById("daily").innerText =
+      "$" + daily.toFixed(2);
 
-    <label>Days in Stock</label>
-    <input type="number" id="days" placeholder="e.g. 45" />
+    document.getElementById("total").innerText =
+      "$" + total.toFixed(2);
 
-    <div class="result">
-      <div>Cost per day</div>
-      <div class="highlight" id="daily">$0.00</div>
-    </div>
-
-    <div class="result">
-      <div>Total holding cost</div>
-      <div class="highlight" id="total">$0.00</div>
-    </div>
-  </div>
-
-  <script>
-    const costInput = document.getElementById("cost");
-    const rateInput = document.getElementById("rate");
-    const daysInput = document.getElementById("days");
-
-    function calculate() {
-      const cost = parseFloat(costInput.value) || 0;
-      const rate = parseFloat(rateInput.value) || 0;
-      const days = parseFloat(daysInput.value) || 0;
-
-      const daily = (cost * (rate / 100)) / 365;
-      const total = daily * days;
-
-      document.getElementById("daily").innerText =
-        "$" + daily.toFixed(2);
-
-      document.getElementById("total").innerText =
-        "$" + total.toFixed(2);
+    // Gross burn calculation
+    if (daily > 0 && gross > 0) {
+      const burnDays = gross / daily;
+      document.getElementById("burnDays").innerText =
+        Math.floor(burnDays) + " days";
+    } else {
+      document.getElementById("burnDays").innerText = "–";
     }
 
-    costInput.addEventListener("input", calculate);
-    rateInput.addEventListener("input", calculate);
-    daysInput.addEventListener("input", calculate);
-  </script>
-</body>
-</html>
+    // Sell vs Hold logic
+    let decision = "–";
+
+    if (weeklyCost > 0 && improvement > 0) {
+      if (weeklyCost > improvement) {
+        decision = "SELL — holding erodes value";
+      } else {
+        decision = "HOLD — improvement exceeds cost";
+      }
+    } else if (gross > 0 && daily > 0 && total > gross) {
+      decision = "SELL — gross already consumed";
+    }
+
+    document.getElementById("decision").innerText = decision;
+  }
+
+  [
+    costInput,
+    rateInput,
+    daysInput,
+    grossInput,
+    improvementInput
+  ].forEach(input => input.addEventListener("input", calculate));
+</script>
