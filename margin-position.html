@@ -112,6 +112,10 @@
       <div class="small" id="decisionText"></div>
     </div>
   </div>
+  <div class="result">
+  <div>Days Until Behind Target</div>
+  <div class="highlight" id="daysUntilBehind">–</div>
+</div>
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -140,23 +144,33 @@
           "$" + trueGross.toFixed(0);
 
         const decisionIcon = document.getElementById("decisionIcon");
-        const decisionText = document.getElementById("decisionText");
+const decisionText = document.getElementById("decisionText");
+const daysUntilBehindEl = document.getElementById("daysUntilBehind");
 
-        if (trueGross >= desiredGross && desiredGross > 0) {
-          decisionIcon.innerText = "👍";
-          decisionText.innerText = "On track – sell now and hit target margin";
-        } else if (trueGross > 0) {
-          decisionIcon.innerText = "👍";
-          decisionText.innerText = "At risk – margin eroding with time";
-        } else {
-          decisionIcon.innerText = "👎";
-          decisionText.innerText = "Behind – holding is destroying margin";
-        }
-      }
+if (dailyCost > 0 && desiredGross > 0) {
+  const gapToTarget = desiredGross - trueGross;
+  const daysUntilBehind = gapToTarget / dailyCost;
 
-      [costInput, rateInput, daysInput, currentGrossInput, desiredGrossInput]
-        .forEach(i => i.addEventListener("input", calculate));
-    });
+  if (trueGross >= desiredGross) {
+    decisionIcon.innerText = "👍";
+    decisionText.innerText = "Ahead – selling now achieves target margin";
+    daysUntilBehindEl.innerText = "On target today";
+  }
+  else if (trueGross > 0 && daysUntilBehind > 0) {
+    decisionIcon.innerText = "👎";
+    decisionText.innerText = "Behind target – margin eroding daily";
+    daysUntilBehindEl.innerText =
+      Math.floor(daysUntilBehind) + " days";
+  }
+  else {
+    decisionIcon.innerText = "👎";
+    decisionText.innerText = "Gross gone – holding destroys value";
+    daysUntilBehindEl.innerText = "Already behind";
+  }
+}
+else {
+  daysUntilBehindEl.innerText = "–";
+}
   </script>
 </body>
 </html>
