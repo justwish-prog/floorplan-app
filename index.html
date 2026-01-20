@@ -1,59 +1,166 @@
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  const costInput = document.getElementById("cost");
-  const rateInput = document.getElementById("rate");
-  const daysInput = document.getElementById("days");
-  const grossInput = document.getElementById("gross");
-  const improvementInput = document.getElementById("improvement");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Let’s Consult – Sell vs Hold</title>
 
-  function calculate() {
-    const cost = parseFloat(costInput.value) || 0;
-    const rate = parseFloat(rateInput.value) || 0;
-    const days = parseFloat(daysInput.value) || 0;
-    const gross = parseFloat(grossInput.value) || 0;
-    const improvement = parseFloat(improvementInput.value) || 0;
-
-    const daily = (cost * (rate / 100)) / 365;
-    const total = daily * days;
-    const weeklyCost = daily * 7;
-
-    document.getElementById("daily").innerText =
-      "$" + daily.toFixed(2);
-
-    document.getElementById("total").innerText =
-      "$" + total.toFixed(2);
-
-    // Gross burn calculation
-    if (daily > 0 && gross > 0) {
-      const burnDays = gross / daily;
-      document.getElementById("burnDays").innerText =
-        Math.floor(burnDays) + " days";
-    } else {
-      document.getElementById("burnDays").innerText = "–";
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
+      background: #0f172a;
+      color: #e5e7eb;
+      margin: 0;
+      padding: 20px;
     }
 
-    // Sell vs Hold logic
-    let decision = "–";
+    .card {
+      max-width: 420px;
+      margin: 0 auto;
+      background: #020617;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.4);
+    }
 
-    if (weeklyCost > 0 && improvement > 0) {
-      if (weeklyCost > improvement) {
-        decision = "SELL — holding erodes value";
-      } else {
-        decision = "HOLD — improvement exceeds cost";
+    h1 {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 16px;
+    }
+
+    label {
+      font-size: 13px;
+      margin-top: 12px;
+      display: block;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 4px;
+      border-radius: 8px;
+      border: 1px solid #1e293b;
+      background: #020617;
+      color: #e5e7eb;
+    }
+
+    .result {
+      margin-top: 16px;
+      padding: 12px;
+      background: #020617;
+      border-radius: 8px;
+      border: 1px solid #1e293b;
+    }
+
+    .highlight {
+      font-size: 22px;
+      font-weight: bold;
+      margin-top: 6px;
+    }
+
+    .sell {
+      color: #ef4444;
+    }
+
+    .hold {
+      color: #22c55e;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>Sell vs Hold – Floorplan Reality</h1>
+    <p>If holding doesn’t beat the clock, it’s not a strategy.</p>
+
+    <label>Vehicle Cost ($)</label>
+    <input id="cost" type="number" placeholder="e.g. 45000">
+
+    <label>All-in Floorplan Rate (%)</label>
+    <input id="rate" type="number" placeholder="e.g. 8.5">
+
+    <label>Days in Stock</label>
+    <input id="days" type="number" placeholder="e.g. 45">
+
+    <label>Expected Gross Margin ($)</label>
+    <input id="gross" type="number" placeholder="e.g. 3500">
+
+    <label>Expected Weekly Gross Improvement ($)</label>
+    <input id="improvement" type="number" placeholder="e.g. 200">
+
+    <div class="result">
+      <div>Daily holding cost</div>
+      <div class="highlight" id="daily">$0.00</div>
+    </div>
+
+    <div class="result">
+      <div>Total holding cost</div>
+      <div class="highlight" id="total">$0.00</div>
+    </div>
+
+    <div class="result">
+      <div>Days until gross is gone</div>
+      <div class="highlight" id="burnDays">–</div>
+    </div>
+
+    <div class="result">
+      <div>Decision</div>
+      <div class="highlight" id="decision">–</div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const costInput = document.getElementById("cost");
+      const rateInput = document.getElementById("rate");
+      const daysInput = document.getElementById("days");
+      const grossInput = document.getElementById("gross");
+      const improvementInput = document.getElementById("improvement");
+
+      function calculate() {
+        const cost = parseFloat(costInput.value) || 0;
+        const rate = parseFloat(rateInput.value) || 0;
+        const days = parseFloat(daysInput.value) || 0;
+        const gross = parseFloat(grossInput.value) || 0;
+        const improvement = parseFloat(improvementInput.value) || 0;
+
+        const daily = (cost * (rate / 100)) / 365;
+        const total = daily * days;
+        const weeklyCost = daily * 7;
+
+        document.getElementById("daily").innerText = "$" + daily.toFixed(2);
+        document.getElementById("total").innerText = "$" + total.toFixed(2);
+
+        if (daily > 0 && gross > 0) {
+          document.getElementById("burnDays").innerText =
+            Math.floor(gross / daily) + " days";
+        } else {
+          document.getElementById("burnDays").innerText = "–";
+        }
+
+        let decision = "–";
+        const decisionEl = document.getElementById("decision");
+
+        if (weeklyCost > improvement && improvement > 0) {
+          decision = "SELL – holding destroys value";
+          decisionEl.className = "highlight sell";
+        } else if (improvement > weeklyCost) {
+          decision = "HOLD – improvement exceeds cost";
+          decisionEl.className = "highlight hold";
+        }
+
+        decisionEl.innerText = decision;
       }
-    } else if (gross > 0 && daily > 0 && total > gross) {
-      decision = "SELL — gross already consumed";
-    }
 
-    document.getElementById("decision").innerText = decision;
-  }
-
-  [
-    costInput,
-    rateInput,
-    daysInput,
-    grossInput,
-    improvementInput
-  ].forEach(input => input.addEventListener("input", calculate));
-});
-</script>
+      [costInput, rateInput, daysInput, grossInput, improvementInput]
+        .forEach(i => i.addEventListener("input", calculate));
+    });
+  </script>
+</body>
+</html>
