@@ -108,8 +108,8 @@
     </div>
 
     <div class="result">
-      <div>Days Until Behind Target</div>
-      <div class="highlight" id="daysUntilBehind">–</div>
+      <div id="daysLabel">Time Position</div>
+      <div class="highlight" id="daysValue">–</div>
     </div>
 
     <div class="result">
@@ -145,31 +145,43 @@
 
       const decisionIcon = document.getElementById("decisionIcon");
       const decisionText = document.getElementById("decisionText");
-      const daysUntilBehindEl = document.getElementById("daysUntilBehind");
+      const daysLabel = document.getElementById("daysLabel");
+      const daysValue = document.getElementById("daysValue");
 
-      if (dailyCost <= 0 || desiredGross <= 0) {
+      if (dailyCost <= 0) {
         decisionIcon.innerText = "–";
         decisionText.innerText = "";
-        daysUntilBehindEl.innerText = "–";
+        daysLabel.innerText = "Time Position";
+        daysValue.innerText = "–";
         return;
       }
 
-      const gapToTarget = desiredGross - trueGross;
-      const daysUntilBehind = gapToTarget / dailyCost;
+      // CASE 1 — Ahead of target
+      if (trueGross >= desiredGross && desiredGross > 0) {
+        const daysAhead = (trueGross - desiredGross) / dailyCost;
 
-      if (trueGross >= desiredGross) {
         decisionIcon.innerText = "👍";
         decisionText.innerText = "Ahead – selling now meets target margin";
-        daysUntilBehindEl.innerText = "On target today";
-      } else if (trueGross > 0) {
+        daysLabel.innerText = "Days until behind target";
+        daysValue.innerText = Math.floor(daysAhead) + " days";
+      }
+
+      // CASE 2 — Behind target but still positive
+      else if (trueGross > 0) {
+        const daysUntilGone = trueGross / dailyCost;
+
         decisionIcon.innerText = "👎";
         decisionText.innerText = "Behind target – margin eroding daily";
-        daysUntilBehindEl.innerText =
-          Math.floor(daysUntilBehind) + " days";
-      } else {
+        daysLabel.innerText = "Days until gross is gone";
+        daysValue.innerText = Math.floor(daysUntilGone) + " days";
+      }
+
+      // CASE 3 — Gross already gone
+      else {
         decisionIcon.innerText = "👎";
         decisionText.innerText = "Gross gone – holding destroys value";
-        daysUntilBehindEl.innerText = "Already behind";
+        daysLabel.innerText = "Days until gross is gone";
+        daysValue.innerText = "Already gone";
       }
     }
 
